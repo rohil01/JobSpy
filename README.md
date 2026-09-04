@@ -26,8 +26,8 @@
 ### Installation
 
 ```
-uv add git+https://github.com/cspenn/jobsniffer
-# or: pip install git+https://github.com/cspenn/jobsniffer
+uv add git+https://github.com/rohil01/JobSpy@30cdb64eb828ff0b4cb9ac3ca5f3449bb008d9d8
+# or: pip install git+https://github.com/rohil01/JobSpy@30cdb64eb828ff0b4cb9ac3ca5f3449bb008d9d8
 ```
 
 Not published to PyPI. `jobsniffer` is a distinct import name from upstream's `jobspy`, so the two
