@@ -1,33 +1,86 @@
 [build-system]
-requires = [ "poetry-core",]
-build-backend = "poetry.core.masonry.api"
+requires = ["hatchling"]
+build-backend = "hatchling.build"
 
-[tool.poetry]
-name = "python-jobspy"
-version = "1.1.82"
-description = "Job scraper for LinkedIn, Indeed, Glassdoor, ZipRecruiter & Bayt"
-authors = ["Cullen Watson <cullen@cullenwatson.com>", "Zachary Hampton <zachary@zacharysproducts.com>"]
-homepage = "https://github.com/cullenwatson/JobSpy"
+[project]
+name = "jobsniffer"
+version = "0.1.0"
+description = "Modernized job scraper library for LinkedIn, Indeed, and ZipRecruiter, forked from JobSpy"
 readme = "README.md"
-keywords = [ "jobs-scraper", "linkedin", "indeed", "glassdoor", "ziprecruiter", "bayt", "naukri"]
-[[tool.poetry.packages]]
-include = "jobspy"
+requires-python = ">=3.12"
+license = { file = "LICENSE" }
+authors = [
+    { name = "Cullen Watson", email = "cullen@cullenwatson.com" },
+    { name = "Zachary Hampton", email = "zachary@zacharysproducts.com" },
+    { name = "Christopher S. Penn" },
+]
+keywords = ["jobs-scraper", "linkedin", "indeed", "ziprecruiter", "glassdoor", "bayt", "naukri", "bdjobs", "google-jobs"]
+dependencies = [
+    "curl-cffi>=0.7.4",
+    "beautifulsoup4>=4.12.2",
+    "pandas>=2.1.0",
+    "numpy>=1.26.0",
+    "pydantic>=2.3.0",
+    "markdownify>=1.1.0",
+    "regex>=2024.4.28",
+    "protobuf>=5.27.0",
+    "stamina>=24.2.0",
+]
+# structlog is deliberately NOT a dependency yet. jobsniffer.http.curl_client
+# tried it and reverted: an unconfigured structlog.get_logger() is invisible
+# to jobsniffer.logging_config.set_logger_level()'s verbosity control (it
+# never attaches to the stdlib logger tree), so it silently ignored
+# verbose=0/1 while stdlib create_logger()-based modules correctly went
+# quiet. Proper adoption means configuring structlog to route through (or
+# replace) the stdlib tree everywhere at once -- that's Phase 4's "Add
+# structlog structured logging" scope, not a per-module swap.
 
-[tool.black]
+[project.urls]
+Homepage = "https://github.com/cspenn/jobsniffer"
+"Upstream (not accepting PRs from this fork)" = "https://github.com/speedyapply/JobSpy"
+
+[dependency-groups]
+dev = [
+    "pytest>=8.0.0",
+    "coverage>=7.0.0",
+    "mypy>=1.10.0",
+    "ruff==0.16.0",
+    "radon>=6.0.1",
+]
+# pytest-cov's --cov flag is deliberately not used: on this environment it
+# corrupts numpy's C-extension loading ("cannot load module more than once
+# per process") as soon as a test imports the jobsniffer package, which
+# transitively imports pandas/numpy. `coverage run -m pytest` exercises the
+# identical coverage.py engine without going through pytest-cov's plugin
+# hook and does not reproduce the failure -- verified directly (both
+# invocations run the same 30 http/ tests; only --cov crashes on import).
+# Run tests via: uv run coverage run -m pytest && uv run coverage report
+# blackboxprotobuf isn't a project dependency: it pins protobuf==3.10.0, which
+# conflicts with protobuf>=5.27.0 above. Run it isolated via
+# `uvx --from blackboxprotobuf python -c '...'` when reverse-engineering the
+# ZipRecruiter wire schema.
+
+[tool.ruff]
 line-length = 88
 
-[tool.poetry.dependencies]
-python = "^3.10"
-requests = "^2.31.0"
-beautifulsoup4 = "^4.12.2"
-pandas = "^2.1.0"
-numpy = ">=1.26.0"
-pydantic = "^2.3.0"
-tls-client = "^1.0.1"
-markdownify = "^1.1.0"
-regex = "^2024.4.28"
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+markers = [
+    "live: hits real third-party sites; opt-in only, excluded from default runs",
+]
+addopts = "-m 'not live'"
 
-[tool.poetry.group.dev.dependencies]
-jupyter = "^1.0.0"
-black = "*"
-pre-commit = "*"
+[tool.coverage.run]
+source = ["src/jobsniffer", "src/scripts"]
+# record_linkedin_fixtures.py is, by design, a live-network interactive tool
+# (see its own module docstring) that seeds tests/fixtures/linkedin.jsonl --
+# unit-testing it would mean either mocking away the exact thing it exists
+# to do (make one real request) or violating the "no network in the default
+# suite" policy. Documented exclusion per the modernization plan's coverage
+# policy, not a silently lowered gate.
+omit = ["src/scripts/record_linkedin_fixtures.py"]
+
+[tool.coverage.report]
+exclude_also = [
+    "if TYPE_CHECKING:",
+]

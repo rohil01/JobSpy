@@ -1,7 +1,7 @@
 repos:
-- repo: https://github.com/psf/black
-  rev: 24.2.0
+- repo: https://github.com/astral-sh/ruff-pre-commit
+  rev: v0.16.0
   hooks:
-  - id: black
-    language_version: python
-    args: [--line-length=88, --quiet]
+  - id: ruff
+    args: [--fix]
+  - id: ruff-format

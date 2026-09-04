@@ -1,7 +1,12 @@
 /venv/
+/.venv/
 /.idea
 **/__pycache__/
 **/.pytest_cache/
+**/.mypy_cache/
+**/.ruff_cache/
+.coverage
+.coverage.*
 /.ipynb_checkpoints/
 **/output/
 **/.DS_Store

@@ -1,5 +1,18 @@
 <img src="https://github.com/cullenwatson/JobSpy/assets/78247585/ae185b7e-e444-4712-8bb9-fa97f53e896b" width="400">
 
+> **This is `jobsniffer`, an independent, AI-assisted fork of [speedyapply/JobSpy](https://github.com/speedyapply/JobSpy)
+> maintained by [@cspenn](https://github.com/cspenn).**
+>
+> - **This fork does not send pull requests to the upstream project**, and does not intend to. It
+>   exists to modernize and diverge, not to contribute back — see [CONTRIBUTING.md](CONTRIBUTING.md).
+> - Code here has been substantially rewritten with AI assistance (dependencies, HTTP client,
+>   parsers, tests, types). If you want the original human-authored project, go upstream.
+> - **Scraper status:** `indeed`, `linkedin`, and `zip_recruiter` are verified against recorded HAR
+>   captures and/or live testing. `glassdoor`, `google`, `bayt`, `bdjobs`, and `naukri` received the
+>   infrastructure upgrade (HTTP client, types) but are **not verified** — treat them as best-effort.
+> - Distributed under the original [MIT License](LICENSE); Cullen Watson and Zachary Hampton remain
+>   credited as original authors.
+
 **JobSpy** is a job scraping library with the goal of aggregating all the jobs from popular job boards with one tool.
 
 ## Features
@@ -13,16 +26,20 @@
 ### Installation
 
 ```
-pip install -U python-jobspy
+uv add git+https://github.com/cspenn/jobsniffer
+# or: pip install git+https://github.com/cspenn/jobsniffer
 ```
 
-_Python version >= [3.10](https://www.python.org/downloads/release/python-3100/) required_
+Not published to PyPI. `jobsniffer` is a distinct import name from upstream's `jobspy`, so the two
+can coexist in the same environment.
+
+_Python version >= [3.12](https://www.python.org/downloads/release/python-3120/) required_
 
 ### Usage
 
 ```python
 import csv
-from jobspy import scrape_jobs
+from jobsniffer import scrape_jobs
 
 jobs = scrape_jobs(
     site_name=["indeed", "linkedin", "zip_recruiter", "google"], # "glassdoor", "bayt", "naukri", "bdjobs"
