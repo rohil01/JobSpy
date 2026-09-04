@@ -117,7 +117,7 @@ class LinkedIn(Scraper):
 
             params = {k: v for k, v in params.items() if v is not None}
             try:
-                response = self.session.get(
+                response = self._get_with_retry(
                     f"{self.base_url}/jobs-guest/jobs/api/seeMoreJobPostings/search?",
                     params=params,
                     timeout=10,
@@ -150,7 +150,9 @@ class LinkedIn(Scraper):
                     if job_id in seen_ids:
                         continue
                     seen_ids.add(job_id)
-
+                    log.info(
+                                    f"Getting Description"
+                                )
                     try:
                         fetch_desc = scraper_input.linkedin_fetch_description
                         job_post = self._process_job(job_card, job_id, fetch_desc)
@@ -162,7 +164,7 @@ class LinkedIn(Scraper):
                         raise LinkedInException(str(e))
 
             if continue_search():
-                time.sleep(random.uniform(self.delay, self.delay + self.band_delay))
+                time.sleep(10 + random.uniform(self.delay, self.delay + self.band_delay))
                 start += len(job_cards)
 
         job_list = job_list[: scraper_input.results_wanted]
@@ -244,6 +246,37 @@ class LinkedIn(Scraper):
             job_function=job_details.get("job_function"),
         )
 
+    def _get_with_retry(self, url: str, **kwargs):
+        last_response = None
+        last_exception = None
+        for attempt in range(3):
+            try:
+                response = self.session.get(url, **kwargs)
+                last_response = response
+                if response.status_code in range(200, 400):
+                    return response
+                failure_reason = f"HTTP {response.status_code}"
+            except Exception as exception:
+                last_exception = exception
+                failure_reason = str(exception)
+
+            if attempt < 2:
+                backoff = 2**attempt + random.uniform(0, 1)
+                log.warning(
+                    f"LinkedIn request attempt {attempt + 1}/3 failed for {url} "
+                    f"({failure_reason}); retrying in {backoff:.2f}s"
+                )
+                time.sleep(backoff)
+
+        if last_response is not None:
+            log.error(
+                f"LinkedIn request failed after 3 attempts for {url} "
+                f"(HTTP {last_response.status_code})"
+            )
+            return last_response
+        log.error(f"LinkedIn request failed after 3 attempts for {url}: {last_exception}")
+        raise last_exception
+
     def _get_job_details(self, job_id: str) -> dict:
         """
         Retrieves job description and other job details by going to the job page url
@@ -251,7 +284,7 @@ class LinkedIn(Scraper):
         :return: dict
         """
         try:
-            response = self.session.get(
+            response = self._get_with_retry(
                 f"{self.base_url}/jobs/view/{job_id}", timeout=5
             )
             response.raise_for_status()
