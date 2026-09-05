@@ -306,7 +306,7 @@ class SalarySource(Enum):
 # still gets 50 rather than None. jobsniffer.indeed.graphql.fetch_page
 # additionally substitutes it for an *explicit* distance=None (a caller
 # opting out on purpose), which this default doesn't and shouldn't cover.
-DEFAULT_DISTANCE_MILES = 50
+DEFAULT_DISTANCE_MILES = 80
 
 
 class ScraperInput(BaseModel):

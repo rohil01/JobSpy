@@ -249,7 +249,7 @@ class LinkedIn(Scraper):
     def _get_with_retry(self, url: str, **kwargs):
         last_response = None
         last_exception = None
-        for attempt in range(3):
+        for attempt in range(5):
             try:
                 response = self.session.get(url, **kwargs)
                 last_response = response
@@ -270,11 +270,11 @@ class LinkedIn(Scraper):
 
         if last_response is not None:
             log.error(
-                f"LinkedIn request failed after 3 attempts for {url} "
+                f"LinkedIn request failed after 5 attempts for {url} "
                 f"(HTTP {last_response.status_code})"
             )
             return last_response
-        log.error(f"LinkedIn request failed after 3 attempts for {url}: {last_exception}")
+        log.error(f"LinkedIn request failed after 5 attempts for {url}: {last_exception}")
         raise last_exception
 
     def _get_job_details(self, job_id: str) -> dict:
