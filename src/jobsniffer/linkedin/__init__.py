@@ -260,10 +260,10 @@ class LinkedIn(Scraper):
                 last_exception = exception
                 failure_reason = str(exception)
 
-            if attempt < 2:
+            if attempt < 4:
                 backoff = 2**attempt + random.uniform(0, 1)
                 log.warning(
-                    f"LinkedIn request attempt {attempt + 1}/3 failed for {url} "
+                    f"LinkedIn request attempt {attempt + 1}/5 failed for {url} "
                     f"({failure_reason}); retrying in {backoff:.2f}s"
                 )
                 time.sleep(backoff)
